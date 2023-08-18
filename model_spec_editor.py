@@ -124,8 +124,9 @@ def build_metadata(state_dict: Optional[dict], **kwargs) -> dict:
         arch += f"/{adapter}"
     metadata["modelspec.architecture"] = arch
 
-    impl_key = "stability_ai" if kwargs.get("is_stable_diffusion_ckpt", True) else "diffusers"
+    impl_key = kwargs.get("implementation") or ("stability_ai" if kwargs.get("is_stable_diffusion_ckpt", True) else "diffusers")
     metadata["modelspec.implementation"] = IMPLEMENTATIONS[impl_key]
+
 
     title = kwargs.get("title", "Checkpoint")
     metadata["modelspec.title"] = title if title else f"{adapter}@{kwargs.get('timestamp')}"
@@ -201,6 +202,7 @@ def initialize_and_process_metadata(args):
         print("Existing metadata found in model.")
 
     metadata_args = {
+        "implementation": args.implementation,
         "architecture": args.architecture,
         "adapter": args.adapter,
         "title": args.title,
@@ -248,6 +250,7 @@ def initialize_and_process_metadata(args):
 def parse_arguments():
     parser = argparse.ArgumentParser(description="Metadata input for model.")
     parser.add_argument("--ckpt", type=str, required=True, help="Path to checkpoint file.")
+    parser.add_argument("--implementation", type=str, choices=list(IMPLEMENTATIONS.keys()), default=None, help="Implementation source of the model.")
     parser.add_argument("--architecture", type=str, choices=list(ARCHITECTURES.keys()), default="sd_v1", help="Model architecture.")
     parser.add_argument("--adapter", type=str, choices=list(ADAPTERS.keys()), default=None, help="Adapter type.")
     parser.add_argument("--title", type=str, default=None, help="Title of the model.")
